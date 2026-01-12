@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מפענח מבצעי WW2</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+
+    <style>
+        body { 
+            background: #1c1e1c;
+            background-image: radial-gradient(circle, #2a2d2a 1px, transparent 1px);
+            background-size: 25px 25px;
+            font-family: 'Courier Prime', monospace;
+            display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;
+            color: #d1d5db;
+            user-select: none;
+        }
+
+        .military-case {
+            background: #3a4235;
+            border: 4px solid #2d3329;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 4px 4px 10px rgba(255,255,255,0.05);
+            border-radius: 4px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .success-paper {
+            background: #e2dcc5;
+            color: #2d3329;
+            padding: 3rem 2rem;
+            border-radius: 2px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 50px rgba(0,0,0,0.1);
+            font-family: 'Special Elite', cursive;
+            position: relative;
+            border-left: 15px solid #d4cdb3;
+            text-align: center;
+        }
+
+        .radio-display {
+            background: #1a1c18;
+            border: 3px solid #4a5445;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.9);
+            border-radius: 2px;
+            min-height: 100px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .bakelite-btn {
+            background: radial-gradient(circle at 30% 30%, #333, #111);
+            border: 1px solid #000;
+            color: #eee;
+            font-family: 'Special Elite', cursive;
+            box-shadow: 0 4px 0 #000, 2px 6px 10px rgba(0,0,0,0.5);
+            transition: all 0.05s;
+        }
+
+        .bakelite-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #000; }
+
+        .led { width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,0.5); }
+        .led-red.active { background: #ff0000; box-shadow: 0 0 12px #ff0000; }
+        .led-green.active { background: #00ff00; box-shadow: 0 0 12px #00ff00; }
+
+        .stencil-text { font-family: 'Special Elite', cursive; text-transform: uppercase; letter-spacing: 1px; }
+
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        .typewriter-text {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            border-left: 3px solid #2d3329;
+            animation: typewriter 1s steps(10, end);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // הגדרות קבועות
+        const SECRET_CODE_VAL = "46345";
+        const MAX_ATTEMPTS_VAL = 3;
+        const CODE_LENGTH_VAL = 5;
+        const LOCK_DURATION_VAL = 30;
+
+        function MilitaryLock() {
+            const [input, setInput] = useState("");
+            const [status, setStatus] = useState("idle"); 
+            const [attempts, setAttempts] = useState(0);
+            const [lockoutTimer, setLockoutTimer] = useState(0);
+
+            useEffect(() => {
+                const savedAttempts = parseInt(localStorage.getItem('ww2_fixed_curr_att')) || 0;
+                const savedEnd = parseInt(localStorage.getItem('ww2_fixed_lock_end')) || 0;
+                const now = Date.now();
+                if (savedEnd > now) {
+                    setStatus("locked");
+                    setLockoutTimer(Math.ceil((savedEnd - now) / 1000));
+                    setAttempts(savedAttempts);
+                } else { setAttempts(savedAttempts); }
+            }, []);
+
+            useEffect(() => {
+                let interval;
+                if (lockoutTimer > 0) {
+                    interval = setInterval(() => {
+                        setLockoutTimer(prev => {
+                            const newVal = prev - 1;
+                            localStorage.setItem('ww2_fixed_lock_end', Date.now() + (newVal * 1000));
+                            return newVal;
+                        });
+                    }, 1000);
+                } else if (lockoutTimer === 0 && status === "locked") {
+                    setStatus("idle"); setAttempts(0); setInput("");
+                    localStorage.setItem('ww2_fixed_curr_att', 0);
+                    localStorage.setItem('ww2_fixed_lock_end', 0);
+                }
+                return () => clearInterval(interval);
+            }, [lockoutTimer, status]);
+
+            const onVerify = () => {
+                setStatus("loading");
+                setTimeout(() => {
+                    if (input === SECRET_CODE_VAL) {
+                        setStatus("success");
+                        localStorage.setItem('ww2_fixed_curr_att', 0);
+                        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+                    } else {
+                        const nextAtt = attempts + 1;
+                        setAttempts(nextAtt);
+                        localStorage.setItem('ww2_fixed_curr_att', nextAtt);
+                        if (nextAtt >= MAX_ATTEMPTS_VAL) {
+                            setStatus("locked");
+                            setLockoutTimer(LOCK_DURATION_VAL);
+                            localStorage.setItem('ww2_fixed_lock_end', Date.now() + (LOCK_DURATION_VAL * 1000));
+                        } else {
+                            setStatus("error");
+                            setTimeout(() => { setStatus("idle"); setInput(""); }, 1200);
+                        }
+                    }
+                }, 800);
+            };
+
+            // מסך הצלחה (המברק)
+            if (status === "success") {
+                return (
+                    <div className="success-paper max-w-sm w-full mx-4 border-2 border-double border-gray-500">
+                        <div className="text-[10px] mb-8 border-b border-gray-400 pb-2 flex justify-between uppercase opacity-60">
+                            <span>Classification: Top Secret</span>
+                            <span>Unit: Intelligence</span>
+                        </div>
+                        
+                        <h2 className="text-4xl font-bold typewriter-text">הצלחת!</h2>
+                        
+                        <div className="mt-16 pt-4 border-t border-gray-400 text-[10px] italic opacity-50">
+                            END OF MESSAGE
+                        </div>
+                        <button 
+                            onClick={() => { setStatus("idle"); setInput(""); }}
+                            className="mt-8 px-6 py-1 border border-gray-600 text-sm hover:bg-gray-300 transition-colors"
+                        >
+                            סגור מברק
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className={`military-case w-full max-w-sm ${status === 'error' ? 'shake' : ''}`}>
+                    <div className="flex justify-between items-center mb-6">
+                        <div className="stencil-text text-[10px] text-[#2d3329]">MODEL: WW2-SILENT-5</div>
+                        <div className="flex gap-2">
+                            <span className={`led led-red ${status === 'error' || status === 'locked' ? 'active' : ''}`}></span>
+                            <span className={`led led-green ${status === 'success' ? 'active' : ''}`}></span>
+                        </div>
+                    </div>
+
+                    <div className="text-center mb-6">
+                        <div className="w-16 h-16 bg-[#1a1c18] border-2 border-[#4a5445] rounded-full mx-auto flex items-center justify-center mb-2 shadow-inner">
+                            <span className="text-2xl">{status === 'locked' ? '⚠️' : '🔒'}</span>
+                        </div>
+                        <h1 className="stencil-text text-xl text-gray-200">מפענח רדיו נייד</h1>
+                    </div>
+
+                    <div className={`radio-display p-4 mb-8 ${status === 'locked' ? 'bg-red-950/20 border-red-900' : ''}`}>
+                        {status === 'locked' ? (
+                            <div className="text-center text-red-600">
+                                <div className="text-3xl font-bold stencil-text mb-1 uppercase">Locked</div>
+                                <div className="text-2xl font-mono">00:{lockoutTimer.toString().padStart(2,'0')}</div>
+                            </div>
+                        ) : (
+                            <React.Fragment>
+                                <div className="flex justify-center gap-2 text-green-500 text-4xl font-mono font-bold mb-2" dir="ltr">
+                                    {input.padEnd(CODE_LENGTH_VAL, '_').split('').map((char, i) => (
+                                        <span key={i} className={i < input.length ? (status === 'error' ? 'text-red-600' : 'text-green-400') : 'opacity-10'}>{char}</span>
+                                    ))}
+                                </div>
+                                <div className="text-[10px] text-green-900 font-bold uppercase tracking-widest">
+                                    Attempts: {attempts} / {MAX_ATTEMPTS_VAL}
+                                </div>
+                            </React.Fragment>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 mb-8" dir="ltr">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 'C', 0, '⌫'].map(k => (
+                            <button 
+                                key={k} 
+                                disabled={status === 'locked'} 
+                                onClick={() => {
+                                    if(k === 'C') setInput("");
+                                    else if(k === '⌫') setInput(p => p.slice(0, -1));
+                                    else if(input.length < CODE_LENGTH_VAL) setInput(p => p + k);
+                                }} 
+                                className="bakelite-btn h-14 w-14 mx-auto rounded-full text-xl disabled:opacity-10"
+                            >{k}</button>
+                        ))}
+                    </div>
+
+                    <button 
+                        onClick={onVerify} 
+                        disabled={status !== 'idle' || input.length < CODE_LENGTH_VAL} 
+                        className={`w-full py-4 rounded-sm stencil-text font-bold text-lg border-b-4 border-black transition-all 
+                            ${status === 'locked' ? 'bg-red-900 text-gray-400 border-red-950' : 'bg-[#2d3329] text-gray-300 hover:bg-[#363e32]'}
+                            disabled:opacity-30 active:translate-y-1`}
+                    >
+                        {status === 'loading' ? 'מפענח...' : status === 'locked' ? 'מערכת נעולה' : 'אמת צופן'}
+                    </button>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<MilitaryLock />);
+    </script>
+</body>
+</html>
