@@ -3,86 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מפענח מבצעי WW2</title>
+    <title>מפענח צפנים - ארכיון היסטורי</title>
     
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Assistant:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
         body { 
-            background: #1c1e1c;
-            background-image: radial-gradient(circle, #2a2d2a 1px, transparent 1px);
-            background-size: 25px 25px;
-            font-family: 'Courier Prime', monospace;
+            background: #1a1c1a;
+            background-image: radial-gradient(#2d332d 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: 'Assistant', sans-serif;
             display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;
             color: #d1d5db;
-            user-select: none;
         }
 
-        .military-case {
-            background: #3a4235;
-            border: 4px solid #2d3329;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 4px 4px 10px rgba(255,255,255,0.05);
-            border-radius: 4px;
-            padding: 2rem;
+        .archive-case {
+            background: #2b2f2b;
+            border: 4px solid #3f453f;
+            box-shadow: 0 0 0 2px #1a1c1a, 0 20px 50px rgba(0,0,0,0.8);
             position: relative;
         }
 
-        .success-paper {
-            background: #e2dcc5;
-            color: #2d3329;
-            padding: 3rem 2rem;
-            border-radius: 2px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 50px rgba(0,0,0,0.1);
-            font-family: 'Special Elite', cursive;
-            position: relative;
-            border-left: 15px solid #d4cdb3;
-            text-align: center;
+        .paper-slot {
+            background: #c2b280;
+            background-image: url('https://www.transparenttextures.com/patterns/pinstriped-suit.png');
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.5);
+            border-bottom: 3px solid #8e7d4b;
         }
 
-        .radio-display {
-            background: #1a1c18;
-            border: 3px solid #4a5445;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.9);
-            border-radius: 2px;
-            min-height: 100px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        .typewriter-font { font-family: 'Special Elite', cursive; }
+
+        .rusty-btn {
+            background: linear-gradient(145deg, #3a3f3a, #232723);
+            border: 1px solid #1a1c1a;
+            box-shadow: 3px 3px 0 #151815;
+            color: #a7adba;
+            transition: all 0.1s;
         }
 
-        .bakelite-btn {
-            background: radial-gradient(circle at 30% 30%, #333, #111);
-            border: 1px solid #000;
-            color: #eee;
-            font-family: 'Special Elite', cursive;
-            box-shadow: 0 4px 0 #000, 2px 6px 10px rgba(0,0,0,0.5);
-            transition: all 0.05s;
+        .rusty-btn:active:not(:disabled) {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 #151815;
         }
 
-        .bakelite-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #000; }
-
-        .led { width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,0.5); }
-        .led-red.active { background: #ff0000; box-shadow: 0 0 12px #ff0000; }
-        .led-green.active { background: #00ff00; box-shadow: 0 0 12px #00ff00; }
-
-        .stencil-text { font-family: 'Special Elite', cursive; text-transform: uppercase; letter-spacing: 1px; }
-
-        @keyframes typewriter {
-            from { width: 0; }
-            to { width: 100%; }
-        }
-
-        .typewriter-text {
+        .stamp {
+            border: 3px double #7f1d1d;
+            color: #7f1d1d;
+            transform: rotate(-15deg);
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            opacity: 0.7;
             display: inline-block;
-            overflow: hidden;
-            white-space: nowrap;
-            border-left: 3px solid #2d3329;
-            animation: typewriter 1s steps(10, end);
         }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.2s ease-in-out 2; }
     </style>
 </head>
 <body>
@@ -91,161 +76,166 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // הגדרות קבועות
-        const SECRET_CODE_VAL = "46345";
-        const MAX_ATTEMPTS_VAL = 3;
-        const CODE_LENGTH_VAL = 5;
-        const LOCK_DURATION_VAL = 30;
+        function HistoricalLock() {
+            const SECRET_CODE = "46345";
+            const MAX_ATTEMPTS = 3;
+            const LOCKOUT_DURATION = 30; // שניות
 
-        function MilitaryLock() {
             const [input, setInput] = useState("");
             const [status, setStatus] = useState("idle"); 
-            const [attempts, setAttempts] = useState(0);
-            const [lockoutTimer, setLockoutTimer] = useState(0);
+            
+            // טעינת ניסיונות מהזיכרון
+            const [attempts, setAttempts] = useState(() => {
+                return parseInt(localStorage.getItem('archive_attempts')) || 0;
+            });
 
-            useEffect(() => {
-                const savedAttempts = parseInt(localStorage.getItem('ww2_fixed_curr_att')) || 0;
-                const savedEnd = parseInt(localStorage.getItem('ww2_fixed_lock_end')) || 0;
-                const now = Date.now();
-                if (savedEnd > now) {
-                    setStatus("locked");
-                    setLockoutTimer(Math.ceil((savedEnd - now) / 1000));
-                    setAttempts(savedAttempts);
-                } else { setAttempts(savedAttempts); }
-            }, []);
+            // בדיקה אם המשתמש היה בחסימה לפני ריענון הדף
+            const [lockoutTimer, setLockoutTimer] = useState(() => {
+                const savedExpiry = localStorage.getItem('archive_lock_expiry');
+                if (savedExpiry) {
+                    const remaining = Math.ceil((parseInt(savedExpiry) - Date.now()) / 1000);
+                    return remaining > 0 ? remaining : 0;
+                }
+                return 0;
+            });
 
+            // ניהול טיימר החסימה
             useEffect(() => {
                 let interval;
                 if (lockoutTimer > 0) {
+                    setStatus("locked");
                     interval = setInterval(() => {
                         setLockoutTimer(prev => {
-                            const newVal = prev - 1;
-                            localStorage.setItem('ww2_fixed_lock_end', Date.now() + (newVal * 1000));
-                            return newVal;
+                            const newValue = prev - 1;
+                            if (newValue <= 0) {
+                                // שחרור חסימה
+                                setAttempts(0);
+                                setStatus("idle");
+                                localStorage.removeItem('archive_lock_expiry');
+                                localStorage.setItem('archive_attempts', '0');
+                                return 0;
+                            }
+                            return newValue;
                         });
                     }, 1000);
-                } else if (lockoutTimer === 0 && status === "locked") {
-                    setStatus("idle"); setAttempts(0); setInput("");
-                    localStorage.setItem('ww2_fixed_curr_att', 0);
-                    localStorage.setItem('ww2_fixed_lock_end', 0);
                 }
                 return () => clearInterval(interval);
-            }, [lockoutTimer, status]);
+            }, [lockoutTimer]);
 
-            const onVerify = () => {
-                setStatus("loading");
-                setTimeout(() => {
-                    if (input === SECRET_CODE_VAL) {
-                        setStatus("success");
-                        localStorage.setItem('ww2_fixed_curr_att', 0);
-                        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-                    } else {
-                        const nextAtt = attempts + 1;
-                        setAttempts(nextAtt);
-                        localStorage.setItem('ww2_fixed_curr_att', nextAtt);
-                        if (nextAtt >= MAX_ATTEMPTS_VAL) {
-                            setStatus("locked");
-                            setLockoutTimer(LOCK_DURATION_VAL);
-                            localStorage.setItem('ww2_fixed_lock_end', Date.now() + (LOCK_DURATION_VAL * 1000));
-                        } else {
-                            setStatus("error");
-                            setTimeout(() => { setStatus("idle"); setInput(""); }, 1200);
-                        }
-                    }
-                }, 800);
+            const handleNumber = (n) => {
+                if (status !== "idle" || input.length >= 5) return;
+                setInput(prev => prev + n);
             };
 
-            // מסך הצלחה (המברק)
-            if (status === "success") {
-                return (
-                    <div className="success-paper max-w-sm w-full mx-4 border-2 border-double border-gray-500">
-                        <div className="text-[10px] mb-8 border-b border-gray-400 pb-2 flex justify-between uppercase opacity-60">
-                            <span>Classification: Top Secret</span>
-                            <span>Unit: Intelligence</span>
-                        </div>
-                        
-                        <h2 className="text-4xl font-bold typewriter-text">הצלחת!</h2>
-                        
-                        <div className="mt-16 pt-4 border-t border-gray-400 text-[10px] italic opacity-50">
-                            END OF MESSAGE
-                        </div>
-                        <button 
-                            onClick={() => { setStatus("idle"); setInput(""); }}
-                            className="mt-8 px-6 py-1 border border-gray-600 text-sm hover:bg-gray-300 transition-colors"
-                        >
-                            סגור מברק
-                        </button>
-                    </div>
-                );
-            }
+            const onVerify = () => {
+                if (input.length < 5 || status !== "idle") return;
+                
+                setStatus("loading");
+                
+                setTimeout(() => {
+                    if (input === SECRET_CODE) {
+                        setStatus("success");
+                        setAttempts(0);
+                        localStorage.setItem('archive_attempts', '0');
+                        localStorage.removeItem('archive_lock_expiry');
+                        confetti({ 
+                            particleCount: 150, 
+                            spread: 70, 
+                            colors: ['#4b5320', '#c2b280', '#ffd700'] 
+                        });
+                    } else {
+                        const newAttempts = attempts + 1;
+                        setAttempts(newAttempts);
+                        localStorage.setItem('archive_attempts', newAttempts.toString());
+
+                        if (newAttempts >= MAX_ATTEMPTS) {
+                            const expiry = Date.now() + (LOCKOUT_DURATION * 1000);
+                            localStorage.setItem('archive_lock_expiry', expiry.toString());
+                            setLockoutTimer(LOCKOUT_DURATION);
+                            setStatus("locked");
+                            setInput("");
+                        } else {
+                            setStatus("error");
+                            setTimeout(() => { 
+                                setStatus("idle"); 
+                                setInput(""); 
+                            }, 1200);
+                        }
+                    }
+                }, 1200);
+            };
 
             return (
-                <div className={`military-case w-full max-w-sm ${status === 'error' ? 'shake' : ''}`}>
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="stencil-text text-[10px] text-[#2d3329]">MODEL: WW2-SILENT-5</div>
-                        <div className="flex gap-2">
-                            <span className={`led led-red ${status === 'error' || status === 'locked' ? 'active' : ''}`}></span>
-                            <span className={`led led-green ${status === 'success' ? 'active' : ''}`}></span>
-                        </div>
-                    </div>
-
+                <div className={`archive-case p-6 rounded-sm w-full max-w-sm ${status === 'error' ? 'shake' : ''}`}>
+                    <div className="absolute top-2 right-2 stamp text-[10px] typewriter-font">סודי ביותר</div>
+                    
                     <div className="text-center mb-6">
-                        <div className="w-16 h-16 bg-[#1a1c18] border-2 border-[#4a5445] rounded-full mx-auto flex items-center justify-center mb-2 shadow-inner">
-                            <span className="text-2xl">{status === 'locked' ? '⚠️' : '🔒'}</span>
+                        <div className="w-16 h-16 bg-[#1a1c1a] border-2 border-[#3f453f] rounded-full mx-auto flex items-center justify-center mb-2 shadow-inner">
+                            <span className="text-2xl grayscale">
+                                {status === 'success' ? '🔓' : status === 'locked' ? '⏳' : '🔒'}
+                            </span>
                         </div>
-                        <h1 className="stencil-text text-xl text-gray-200">מפענח רדיו נייד</h1>
+                        <h1 className="typewriter-font text-xl text-gray-300">פענוח מסמך מסווג</h1>
+                        <div className="flex flex-col gap-1 mt-2">
+                            <p className="text-[10px] text-gray-500 uppercase tracking-widest">מדור היסטוריה</p>
+                            <p className="text-xs font-bold text-amber-600/70 uppercase">
+                                ניסיונות: {attempts} / {MAX_ATTEMPTS}
+                            </p>
+                        </div>
                     </div>
 
-                    <div className={`radio-display p-4 mb-8 ${status === 'locked' ? 'bg-red-950/20 border-red-900' : ''}`}>
-                        {status === 'locked' ? (
-                            <div className="text-center text-red-600">
-                                <div className="text-3xl font-bold stencil-text mb-1 uppercase">Locked</div>
-                                <div className="text-2xl font-mono">00:{lockoutTimer.toString().padStart(2,'0')}</div>
-                            </div>
-                        ) : (
-                            <React.Fragment>
-                                <div className="flex justify-center gap-2 text-green-500 text-4xl font-mono font-bold mb-2" dir="ltr">
-                                    {input.padEnd(CODE_LENGTH_VAL, '_').split('').map((char, i) => (
-                                        <span key={i} className={i < input.length ? (status === 'error' ? 'text-red-600' : 'text-green-400') : 'opacity-10'}>{char}</span>
-                                    ))}
-                                </div>
-                                <div className="text-[10px] text-green-900 font-bold uppercase tracking-widest">
-                                    Attempts: {attempts} / {MAX_ATTEMPTS_VAL}
-                                </div>
-                            </React.Fragment>
-                        )}
+                    <div className="paper-slot p-5 rounded-sm mb-6 relative overflow-hidden">
+                        <div className="flex justify-center gap-4 text-black text-4xl typewriter-font font-bold" dir="ltr">
+                            {input.padEnd(5, '•').split('').map((char, i) => (
+                                <span key={i} className={i < input.length ? (status === 'error' ? 'text-red-700' : 'text-black') : 'opacity-20'}>
+                                    {char}
+                                </span>
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 mb-8" dir="ltr">
+                    <div className="grid grid-cols-3 gap-3 mb-6" dir="ltr">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 'C', 0, '⌫'].map(k => (
                             <button 
-                                key={k} 
-                                disabled={status === 'locked'} 
+                                key={k}
+                                disabled={status !== 'idle'}
                                 onClick={() => {
-                                    if(k === 'C') setInput("");
-                                    else if(k === '⌫') setInput(p => p.slice(0, -1));
-                                    else if(input.length < CODE_LENGTH_VAL) setInput(p => p + k);
-                                }} 
-                                className="bakelite-btn h-14 w-14 mx-auto rounded-full text-xl disabled:opacity-10"
+                                    if (k === 'C') setInput("");
+                                    else if (k === '⌫') setInput(p => p.slice(0, -1));
+                                    else handleNumber(k.toString());
+                                }}
+                                className="rusty-btn h-14 rounded-sm text-xl typewriter-font disabled:opacity-20 disabled:cursor-not-allowed"
                             >{k}</button>
                         ))}
                     </div>
 
                     <button 
-                        onClick={onVerify} 
-                        disabled={status !== 'idle' || input.length < CODE_LENGTH_VAL} 
-                        className={`w-full py-4 rounded-sm stencil-text font-bold text-lg border-b-4 border-black transition-all 
-                            ${status === 'locked' ? 'bg-red-900 text-gray-400 border-red-950' : 'bg-[#2d3329] text-gray-300 hover:bg-[#363e32]'}
-                            disabled:opacity-30 active:translate-y-1`}
+                        onClick={onVerify}
+                        disabled={status !== 'idle' || input.length < 5}
+                        className={`w-full py-4 rounded-sm typewriter-font font-bold text-lg border-2 border-black shadow-lg transition-all
+                            ${status === 'success' ? 'bg-green-900 text-white border-green-400' : 'bg-[#4b5320] text-gray-200 hover:bg-[#565e25]'}
+                            disabled:opacity-40 disabled:grayscale active:bg-black`}
                     >
-                        {status === 'loading' ? 'מפענח...' : status === 'locked' ? 'מערכת נעולה' : 'אמת צופן'}
+                        {status === 'loading' ? 'מפענח...' : status === 'locked' ? `מושבת (${lockoutTimer} שנ')` : 'אמת צופן'}
                     </button>
+
+                    {status === 'error' && (
+                        <p className="text-center text-red-900 mt-4 typewriter-font text-[10px] font-bold uppercase bg-red-200/20 py-1 rounded">
+                            שגיאת פענוח: נותרו {MAX_ATTEMPTS - attempts} הזדמנויות
+                        </p>
+                    )}
+
+                    {status === 'locked' && (
+                        <p className="text-center text-amber-500 mt-4 typewriter-font text-[10px] font-bold uppercase animate-pulse">
+                            אבטחה הופעלה. המתן לשחרור המערכת.
+                        </p>
+                    )}
                 </div>
             );
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<MilitaryLock />);
+        root.render(<HistoricalLock />);
     </script>
 </body>
 </html>
