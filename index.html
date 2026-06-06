@@ -89,8 +89,8 @@
         const { useState, useEffect } = React;
 
         function HistoricalLock() {
-            // הקוד החדש שביקשת
-            const SECRET_CODE = "483455"; 
+            // הקוד החדש שעודכן ל-7 ספרות
+            const SECRET_CODE = "1615176"; 
             const MAX_ATTEMPTS = 3;
             const LOCKOUT_DURATION = 30;
 
@@ -132,14 +132,14 @@
             }, [lockoutTimer]);
 
             const handleNumber = (n) => {
-                // הגבלה ל-6 ספרות
-                if (status !== "idle" || input.length >= 6) return;
+                // המגבלה עודכנה ל-7 ספרות
+                if (status !== "idle" || input.length >= 7) return;
                 setInput(prev => prev + n);
             };
 
             const onVerify = () => {
-                // וידוא שהוקלדו 6 ספרות לפני שליחה
-                if (input.length < 6 || status !== "idle") return;
+                // וידוא שהוקלדו 7 ספרות לפני שליחה
+                if (input.length < 7 || status !== "idle") return;
                 
                 setStatus("loading");
                 
@@ -208,8 +208,8 @@
 
                             <div className="paper-slot p-5 rounded-sm mb-6 relative overflow-hidden">
                                 <div className="flex justify-center gap-3 text-black text-3xl typewriter-font font-bold" dir="ltr">
-                                    {/* מוצגות 6 נקודות placeholders */}
-                                    {input.padEnd(6, '•').split('').map((char, i) => (
+                                    {/* מוצגות 7 נקודות במקום 6 */}
+                                    {input.padEnd(7, '•').split('').map((char, i) => (
                                         <span key={i} className={i < input.length ? (status === 'error' ? 'text-red-700' : 'text-black') : 'opacity-20'}>
                                             {char}
                                         </span>
@@ -234,7 +234,7 @@
 
                             <button 
                                 onClick={onVerify}
-                                disabled={status !== 'idle' || input.length < 6}
+                                disabled={status !== 'idle' || input.length < 7}
                                 className="w-full py-4 rounded-sm typewriter-font font-bold text-lg border-2 border-black shadow-lg bg-[#4b5320] text-gray-200 hover:bg-[#565e25] disabled:opacity-40"
                             >
                                 {status === 'loading' ? 'מפענח...' : status === 'locked' ? `מושבת (${lockoutTimer} שנ')` : 'אמת צופן'}
